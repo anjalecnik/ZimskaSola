@@ -80,7 +80,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.DOCKER_HUB_PASS }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Docker push
         run: docker push ghcr.io/anjalecnik/zimskasola-qrks:$TAG_NAME && docker push ghcr.io/anjalecnik/zimskasola-qrks:latest
