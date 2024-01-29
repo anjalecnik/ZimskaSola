@@ -6,29 +6,29 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import si.um.feri.dao.PaketRepository;
-import si.um.feri.dto.PaketDTO;
-import si.um.feri.vao.Paket;
+import si.um.feri.dao.StrankaRepository;
+import si.um.feri.dto.StrankaDTO;
+import si.um.feri.vao.Stranka;
 
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-@Path("/paket")
+@Path("/stranka")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class PaketController {
-    private static final Logger log = Logger.getLogger(PaketController.class.getName());
+public class StrankaController {
+    private static final Logger log = Logger.getLogger(StrankaController.class.getName());
 
     @Inject
-    PaketRepository paketRepository;
+    StrankaRepository strankaRepository;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<PaketDTO> getAllPaketi() {
-        return paketRepository.listAll()
+    public List<StrankaDTO> getAllStranke() {
+        return strankaRepository.listAll()
                 .stream()
-                .map(Paket::toDto)
+                .map(Stranka::toDto)
                 .collect(Collectors.toList());
     }
 }
