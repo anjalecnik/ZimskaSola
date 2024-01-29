@@ -78,8 +78,9 @@ jobs:
       - name: Login to DockerHub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_PASS }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Docker push
         run: docker push anjalecnik/zimskasola-qrks:$TAG_NAME && docker push anjalecnik/zimskasola-qrks:latest
