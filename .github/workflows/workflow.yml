@@ -10,6 +10,21 @@ jobs:
   build_backend:
     name: Build Backend
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: zimskasola
+          POSTGRES_USER: postgres_user
+          POSTGRES_PASSWORD: postgres_pwd
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
   
     steps:
       - name: Checkout repository
@@ -26,26 +41,47 @@ jobs:
         run: mvn -B package --file pom.xml -DskipTests
         working-directory: Backend
 
-
-  build_frontend:
-    name: Build Frontend
-    runs-on: ubuntu-latest
-    needs: [build_backend]
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-  
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - name: Upload resulting Build package
+        uses: actions/upload-artifact@v4
         with:
-          node-version: 20
-          cache: 'npm'
-          cache-dependency-path: Frontend/package-lock.json
-  
-      - name: Install dependencies
-        run: npm ci
-        working-directory: Frontend
-        
-      - name: Build frontend
-        run:  npm run build --no-progress 2>&1 >/dev/null || true # Mutes ESlint warnings
-        working-directory: Frontend
+          name: Package
+          path: Backend/target
+
+
+  BE-docker-image-delivery:
+    name: BE Docker Image Delivery
+    runs-on: ubuntu-latest
+    needs: build_backend
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: Package
+          path: Backend/target/
+
+      - name: Generate image tag
+        id: date
+        run: echo "::set-output name=date::$(date +%Y%m%d-%H%M%S)"
+
+      - name: Docker build
+        run: docker build -t anjalecnik/zimskasola-qrks:$TAG_NAME -f Backend/src/main/docker/Dockerfile.jvm ./Backend
+        env:
+          TAG_NAME: CD-${{ steps.date.outputs.date }}
+
+      - name: Retag to latest
+        run: docker tag anjalecnik/zimskasola-qrks:$TAG_NAME anjalecnik/zimskasola-qrks:latest
+        env:
+          TAG_NAME: CD-${{ steps.date.outputs.date }}
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASS }}
+
+      - name: Docker push
+        run: docker push anjalecnik/zimskasola-qrks:$TAG_NAME && docker push anjalecnik/zimskasola-qrks:latest
+        env:
+          TAG_NAME: CD-${{ steps.date.outputs.date }}
