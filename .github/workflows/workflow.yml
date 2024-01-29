@@ -66,22 +66,23 @@ jobs:
         run: echo "::set-output name=date::$(date +%Y%m%d-%H%M%S)"
 
       - name: Docker build
-        run: docker build -t anjalecnik/zimskasola-qrks:$TAG_NAME -f Backend/src/main/docker/Dockerfile.jvm ./Backend
+        run: docker build -t ghcr.io/anjalecnik/zimskasola-qrks:$TAG_NAME -f Backend/src/main/docker/Dockerfile.jvm ./Backend
         env:
           TAG_NAME: CD-${{ steps.date.outputs.date }}
 
       - name: Retag to latest
-        run: docker tag anjalecnik/zimskasola-qrks:$TAG_NAME anjalecnik/zimskasola-qrks:latest
+        run: docker tag ghcr.io/anjalecnik/zimskasola-qrks:$TAG_NAME ghcr.io/anjalecnik/zimskasola-qrks:latest
         env:
           TAG_NAME: CD-${{ steps.date.outputs.date }}
 
       - name: Login to DockerHub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_PASS }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Docker push
-        run: docker push anjalecnik/zimskasola-qrks:$TAG_NAME && docker push anjalecnik/zimskasola-qrks:latest
+        run: docker push ghcr.io/anjalecnik/zimskasola-qrks:$TAG_NAME && docker push ghcr.io/anjalecnik/zimskasola-qrks:latest
         env:
           TAG_NAME: CD-${{ steps.date.outputs.date }}
