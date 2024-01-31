@@ -77,8 +77,8 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
       - name: Build and analyze
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_BE }}
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=anjalecnik_ZimskaSola
         working-directory: Backend/
 
@@ -123,3 +123,67 @@ jobs:
         run: docker push ghcr.io/anjalecnik/zimskasola-qrks:$TAG_NAME && docker push ghcr.io/anjalecnik/zimskasola-qrks:latest
         env:
           TAG_NAME: CD-${{ steps.date.outputs.date }}
+
+
+  FE-build:
+    name: FE Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+  
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: Frontend/package-lock.json
+  
+      - name: Install dependencies
+        run: npm ci
+        working-directory: Frontend
+
+      - name: Cache node modules
+        uses: actions/cache@v2
+        with:
+          path: Frontend/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('Frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+        
+      - name: Build frontend
+        run: npm run build --no-progress 2>&1 >/dev/null || true # Mutes ESlint warnings
+        working-directory: Frontend
+
+      - name: Upload frontend build artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: frontend-build
+          path: Frontend/build/
+          
+  FE-static-code-analysis:
+      name: FE SonarCloud Analysis
+      runs-on: ubuntu-latest
+      needs: [FE-build]
+    
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v3
+    
+        - name: Setup Node.js
+          uses: actions/setup-node@v3
+          with:
+            node-version: 20
+            cache: 'npm'
+            cache-dependency-path: Frontend/package-lock.json
+    
+        - name: Install dependencies
+          run: npm ci
+          working-directory: Frontend
+  
+        - name: SonarCloud Scan Frontend
+          uses: SonarSource/sonarcloud-github-action@master
+          env:
+            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_FE }}
+          with:
+            projectBaseDir: Frontend/
