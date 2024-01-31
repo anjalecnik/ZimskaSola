@@ -39,15 +39,15 @@ public class NarociloController {
                 .stream()
                 .map(Narocilo::toDto)
                 .collect(Collectors.toList());
+
     }
 
     @GET
     @Path("/pridobi-po-id")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<NarociloDTO> getNarocilaByStranka(@QueryParam("strankaId") Long strankaId) {
+    public List<Narocilo> getNarocilaByStranka(@QueryParam("strankaId") Long strankaId) {
         return narociloRepository.find("stranka.id", strankaId)
                 .stream()
-                .map(Narocilo::toDto)
                 .collect(Collectors.toList());
     }
 

@@ -16,10 +16,11 @@ public class Stranka {
     protected Long id;
     protected String ime;
     protected String priimek;
-    protected String email;
     protected String naslov;
+    protected String email;
+    protected String geslo;
 
     public StrankaDTO toDto() {
-        return new StrankaDTO(id, ime, priimek, email, naslov);
+        return new StrankaDTO(ime, priimek, naslov, email, geslo);
     }
 }

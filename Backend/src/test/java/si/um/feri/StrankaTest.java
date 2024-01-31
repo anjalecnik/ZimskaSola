@@ -15,8 +15,6 @@ class StrankaTest {
     @jakarta.inject.Inject
     StrankaRepository daoStranka;
 
-    Stranka stranka;
-
     @Test
     @Transactional
     void CreateStranka_adds_new_entry() {
@@ -25,6 +23,7 @@ class StrankaTest {
         stranka.setPriimek("Priimek");
         stranka.setEmail("ime.priimek@email.com");
         stranka.setNaslov("Testni naslov 20");
+        stranka.setGeslo("Geslo");
 
         daoStranka.persist(stranka);
 

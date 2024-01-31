@@ -9,4 +9,8 @@ public class StrankaRepository implements PanacheRepository<Stranka> {
     public Stranka findByImeAndPriimek(String ime, String priimek){
         return find("ime = ?1 and priimek = ?2", ime, priimek).firstResult();
     }
+
+    public Stranka findByEmail(String email){
+        return find("email = ?1", email).firstResult();
+    }
 }
